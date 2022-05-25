@@ -3,7 +3,7 @@
 {% block content %}
 {{block.super}}
 
-<div class="container">
+  <div class="container">
 
     <!-- Looping through news   -->
     {% for news_item in news %}
@@ -22,7 +22,7 @@
   
     {% empty %}
     <div class="row">
-      <h2 class="text-center">There No News Items</h2>
+      <h2 class="text-center">There are No News Items</h2>
     </div>
     {% endfor %}
   
