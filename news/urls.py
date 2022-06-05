@@ -1,6 +1,6 @@
 
 from django.conf.urls.static import static
-from django.urls import re_path
+from django.urls import re_path,include
 from django.conf import settings
 from . import views
 
@@ -12,7 +12,12 @@ urlpatterns=[
     
     re_path(r'^search/', views.search_results, name='search_results'),
 
-    re_path(r'^article/(\d+)',views.article,name ='article')
+    re_path(r'^article/(\d+)',views.article,name ='article'),
+
+    re_path(r'^tinymce/', include('tinymce.urls')),
+
+    re_path(r'^new/article$', views.new_article, name='new-article')
+
 
 ]
 if settings.DEBUG:

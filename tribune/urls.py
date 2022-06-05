@@ -15,12 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import re_path,include
-
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     re_path('admin/', admin.site.urls),
 ]
 urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
-    re_path(r'',include('news.urls'))
+    re_path(r'',include('news.urls')),
+    re_path(r'^accounts/', include('registration.backends.simple.urls')),
+    re_path(r'^logout/', auth_views.logout_then_login), 
 ]

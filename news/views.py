@@ -1,20 +1,36 @@
 from django.shortcuts import render,redirect
-from django.http  import Http404,HttpResponse
+from django.http  import Http404,HttpResponseRedirect
 import datetime as dt
-from .models import Article
+from .email import send_welcome_email
+from .forms import NewsLetterForm, NewArticleForm
+from .models import Article, NewsLetterRecipient
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
 def welcome(request):
     return render(request, 'welcome.html')
 
-
 #current day news
 def news_of_day(request):
     date = dt.date.today()
     news = Article.todays_news()
   
-    return render(request, 'all-news/today-news.html',{"date": date,"news":news})
+    form =NewsLetterForm(request.POST)
+    if request.method == 'POST':
+        if form.is_valid():
+            name = form.cleaned_data['your_name']
+            email = form.cleaned_data['email']
+            recipient = NewsLetterRecipient(name = name,email =email)
+           
+            recipient.save()
+            send_welcome_email(name,email)
+            
+            HttpResponseRedirect('news_of_day')
+        else:
+            form = NewsLetterForm()
+
+    return render(request, 'all-news/today-news.html',{"date": date,"news":news,"letterForm":form})
 
 
 # View Function to present news from past days
@@ -30,7 +46,7 @@ def past_days_news(request,past_date):
         assert False
 
     if date == dt.date.today():
-        return redirect(news_of_day)
+        return redirect('news_of_day')
     
     news = Article.days_news(date)
 
@@ -49,9 +65,26 @@ def search_results(request):
         message = "You haven't searched for any term"
         return render(request, 'all-news/search.html',{"message":message})
 
+@login_required(login_url='/accounts/login/')
 def article(request,article_id):
     try:
         article = Article.objects.get(id = article_id)
     except Article.DoesNotExist:
         raise Http404()
     return render(request,"all-news/article.html", {"article":article})
+
+
+@login_required(login_url='/accounts/login/')
+def new_article(request):
+    current_user = request.user
+    if request.method == 'POST':
+        form = NewArticleForm(request.POST, request.FILES)
+        if form.is_valid():
+            article = form.save(commit=False)
+            article.editor = current_user
+            article.save()
+        return redirect('news_of_day')
+
+    else:
+        form = NewArticleForm()
+    return render(request, 'new_article.html', {"form": form})
